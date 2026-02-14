@@ -5,10 +5,10 @@ rm -rf openwrt
 rm -rf mtk-openwrt-feeds
 
 git clone --branch openwrt-25.12 https://github.com/openwrt/openwrt.git openwrt
-cd openwrt; git checkout 85342bea07f65bdd9a22fc45a4c977c9aa42a5fb; cd -;		#wireguard-tools: fix script errors
+cd openwrt; git checkout 324e157b4bf2fea54bd2608ab2af05066936e12f; cd -;		#apk: handle edge case when parsing .apk files
 
 git clone --branch master https://git01.mediatek.com/openwrt/feeds/mtk-openwrt-feeds
-cd mtk-openwrt-feeds; git checkout 05b3d27f0beade745e2c4d699c60e45667420e62; cd -;	#[kernel-6.12][mt7987/mt7988][i2.5Gphy][net: phy: mtk-2p5ge: Fix write_mmd callback check]
+cd mtk-openwrt-feeds; git checkout 0d7dc2bd18d95a0b71d77931612a6905da8a89de; cd -;	#[openwrt-25.12][common][common][Remove patch reverting OpenWrt commit 82fec21]
 
 \cp -r my_files/w-defconfig mtk-openwrt-feeds/autobuild/unified/filogic/25.12/defconfig
 \cp -r my_files/1130-image-mediatek-filogic-add-bananapi-bpi-r4-pro-support.patch mtk-openwrt-feeds/25.12/patches-base
