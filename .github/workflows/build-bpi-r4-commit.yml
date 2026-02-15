@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -151,15 +152,15 @@ jobs:
               per_page: 100
             });
 
-            // Najdeme vöechny releasy, jejichû tag_name zaËÌn· na "bpi-r4-commit-"
+            // Najdeme v≈°echny releasy, jejich≈æ tag_name za√®√≠n√° na "bpi-r4-commit-"
             const manualReleases = releases.data.filter(
               rel => rel.tag_name && rel.tag_name.startsWith('bpi-r4-commit-')
             );
 
-            // Se¯adÌme podle creation date (nejnovÏjöÌ prvnÌ)
+            // Se√∏ad√≠me podle creation date (nejnov√¨j≈°√≠ prvn√≠)
             manualReleases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-            // Nech·me si jen prvnÌ (nejnovÏjöÌ), zbytek smaûeme
+            // Nech√°me si jen prvn√≠ (nejnov√¨j≈°√≠), zbytek sma≈æeme
             const toDelete = manualReleases.slice(1);
 
             for (const rel of toDelete) {
