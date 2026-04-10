@@ -5,21 +5,12 @@ Subject: [PATCH] wifi: mt76: mt7915: fix callback signatures for link_id
 MTK mac80211 patches added a new link_id argument to set_bitrate_mask,
 add_twt_setup and twt_teardown_request ieee80211_ops callbacks. Update
 mt7915 to match the new signatures. mt7915 does not support MLO so the
-link_id parameter is accepted but unused.
+link_id parameter is accepted but unused. add_twt_setup needs a wrapper
+since mt7915_mac_add_twt_setup does not take a link_id parameter.
 
---- a/mt7915/mac.c
-+++ b/mt7915/mac.c
-@@ -2274,6 +2274,7 @@ mt7915_mac_twt_param_equal(struct mt7915_sta *msta,
- 
- void mt7915_mac_add_twt_setup(struct ieee80211_hw *hw,
- 			      struct ieee80211_sta *sta,
-+			      u8 link_id,
- 			      struct ieee80211_twt_setup *twt)
- {
- 	enum ieee80211_twt_setup_cmd setup_cmd = TWT_SETUP_CMD_REJECT;
 --- a/mt7915/main.c
 +++ b/mt7915/main.c
-@@ -1255,7 +1255,8 @@ static void mt7915_sta_rc_update(struct ieee80211_hw *hw,
+@@ -1255,7 +1255,8 @@
  
  static int
  mt7915_set_bitrate_mask(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
@@ -29,20 +20,34 @@ link_id parameter is accepted but unused.
  {
  	struct mt7915_vif *mvif = (struct mt7915_vif *)vif->drv_priv;
  	struct mt7915_phy *phy = mt7915_hw_phy(hw);
-@@ -1694,6 +1695,7 @@ void mt7915_get_et_stats(struct ieee80211_hw *hw,
- static void
+@@ -1695,6 +1696,7 @@
+ static int
  mt7915_twt_teardown_request(struct ieee80211_hw *hw,
  			    struct ieee80211_sta *sta,
 +			    u8 link_id,
- 			    u8 flowid)
+ 			    struct ieee80211_twt_teardown *td)
  {
  	struct mt7915_sta *msta = (struct mt7915_sta *)sta->drv_priv;
---- a/mt7915/mt7915.h
-+++ b/mt7915/mt7915.h
-@@ -605,6 +605,7 @@ void mt7915_mac_twt_teardown_flow(struct mt7915_dev *dev,
- 				  u8 flowid);
- void mt7915_mac_add_twt_setup(struct ieee80211_hw *hw,
- 			      struct ieee80211_sta *sta,
-+			      u8 link_id,
- 			      struct ieee80211_twt_setup *twt);
- int mt7915_tx_prepare_skb(struct mt76_dev *mdev, void *txwi_ptr,
+@@ -1712,6 +1714,13 @@
+ }
+ 
+ static int
++mt7915_add_twt_setup(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
++		     u8 link_id, struct ieee80211_twt_setup *twt)
++{
++	return mt7915_mac_add_twt_setup(hw, sta, twt);
++}
++
++static int
+ mt7915_set_frag_threshold(struct ieee80211_hw *hw, int radio_idx, u32 val)
+ {
+ 	return 0;
+@@ -1860,7 +1869,7 @@
+ 	.sta_set_txpwr = mt7915_sta_set_txpwr,
+ 	.sta_set_4addr = mt7915_sta_set_4addr,
+ 	.sta_set_decap_offload = mt7915_sta_set_decap_offload,
+-	.add_twt_setup = mt7915_mac_add_twt_setup,
++	.add_twt_setup = mt7915_add_twt_setup,
+ 	.twt_teardown_request = mt7915_twt_teardown_request,
+ 	.set_frag_threshold = mt7915_set_frag_threshold,
+ 	CFG80211_TESTMODE_CMD(mt76_testmode_cmd)
